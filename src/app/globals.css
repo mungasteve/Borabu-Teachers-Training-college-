@@ -619,6 +619,7 @@ button, input, select, textarea {
 .step-container {
   max-width: 800px;
   margin: 40px auto;
+  width: 100%;
 }
 
 .step-indicator {
@@ -699,38 +700,229 @@ button, input, select, textarea {
   gap: 20px;
 }
 
+/* Responsive Portal Layout Grid */
+.portal-layout-grid {
+  flex-grow: 1;
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 30px;
+  padding: 30px 20px;
+  width: 100%;
+}
+
+.portal-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Responsive Tables */
+.responsive-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 20px;
+  border-radius: var(--radius-md);
+}
+
+.responsive-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+}
+
+/* Mobile & Tablet Navigation Components */
+.mobile-nav-toggle-wrap {
+  display: none;
+  align-items: center;
+  gap: 12px;
+}
+
+.mobile-hamburger-btn {
+  background: transparent;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  color: var(--text-dark);
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  transition: var(--transition-fast);
+}
+
+.mobile-hamburger-btn:hover {
+  background: rgba(37, 99, 235, 0.08);
+  border-color: var(--primary-blue);
+}
+
+.mobile-nav-drawer {
+  display: none;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-light);
+  padding: 20px;
+  box-shadow: var(--shadow-lg);
+  animation: slideDown 0.25s ease-out forwards;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mobile-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  margin-bottom: 20px;
+}
+
+.mobile-nav-link {
+  display: block;
+  padding: 12px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-dark);
+  border-radius: var(--radius-md);
+  transition: var(--transition-fast);
+}
+
+.mobile-nav-link:hover,
+.mobile-nav-link.active {
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--primary-blue);
+}
+
+.mobile-nav-actions {
+  border-top: 1px solid var(--border-light);
+  padding-top: 16px;
+}
+
+/* Device Breakpoints: Laptops & Tablets (max-width: 1024px) */
+@media (max-width: 1024px) {
+  .desktop-nav,
+  .desktop-cta {
+    display: none !important;
+  }
+
+  .mobile-nav-toggle-wrap {
+    display: flex !important;
+  }
+
+  .mobile-nav-drawer {
+    display: block !important;
+  }
+
+  .nav-container {
+    height: 70px;
+  }
+
+  .portal-layout-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 20px 16px;
+  }
+
+  .portal-sidebar-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    background: var(--bg-card);
+    padding: 12px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-light);
+  }
+
+  .portal-sidebar-nav .portal-nav-link,
+  .portal-sidebar-nav .portal-apply-btn {
+    flex: 1 1 auto;
+    min-width: 140px;
+  }
+
+  .portal-help-box {
+    display: none;
+  }
+
+  .footer-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px;
+  }
+}
+
+/* Tablets & Mobile Phones (max-width: 768px) */
 @media (max-width: 768px) {
   .hero-grid {
     grid-template-columns: 1fr;
-    gap: 40px;
+    gap: 32px;
     text-align: center;
   }
   .hero-buttons {
     justify-content: center;
+    flex-wrap: wrap;
   }
   .hero-stats {
     justify-content: center;
-  }
-  .footer-grid {
-    grid-template-columns: 1fr 1fr;
+    flex-wrap: wrap;
+    gap: 20px;
   }
   .form-grid {
     grid-template-columns: 1fr;
   }
-  .nav-menu {
-    display: none;
-  }
   .step-label {
     display: none; /* Hide labels on mobile to prevent overlapping */
   }
+  .step-container {
+    margin: 20px auto;
+  }
+  .step-indicator {
+    margin-bottom: 24px;
+  }
+  .form-card {
+    padding: 24px 18px;
+    margin: 24px auto;
+  }
+  .footer-bottom {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
 }
 
+/* Compact Mobile Devices (max-width: 480px) */
 @media (max-width: 480px) {
+  .logo-title {
+    font-size: 16px !important;
+  }
+  .logo-tagline {
+    font-size: 10px !important;
+  }
   .footer-grid {
     grid-template-columns: 1fr;
+    gap: 24px;
   }
   .hero-title {
-    font-size: 38px;
+    font-size: 32px;
+    line-height: 1.2;
+  }
+  .btn {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+  .portal-sidebar-nav {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .portal-user-welcome {
+    display: none;
   }
 }
 

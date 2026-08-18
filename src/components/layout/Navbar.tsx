@@ -17,6 +17,7 @@ export default function Navbar() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -42,7 +43,12 @@ export default function Navbar() {
     return () => {
       isMounted = false;
     };
-  }, []); // Only check on mount, not on every single pathname change
+  }, []);
+
+  // Close mobile drawer whenever route changes
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
 
   const handleLogout = async () => {
     try {
@@ -61,78 +67,54 @@ export default function Navbar() {
     return pathname === path ? 'active' : '';
   };
 
+  const navLinks = [
+    { href: '/', label: 'Home' },
+    { href: '/about', label: 'About' },
+    { href: '/programmes', label: 'Programmes' },
+    { href: '/admissions', label: 'Admissions' },
+    { href: '/fees', label: 'Fees' },
+    { href: '/gallery', label: 'Gallery' },
+    { href: '/news', label: 'News' },
+    { href: '/faqs', label: 'FAQs' },
+    { href: '/contact', label: 'Contact' },
+  ];
+
   return (
-    <header className="main-header">
+    <header className="main-header" id="site-main-header">
       <div className="container nav-container">
-        <Link href="/" className="logo-link">
+        <Link href="/" className="logo-link" id="nav-brand-logo">
           <div className="logo-icon">B</div>
           <div className="logo-text">
-            <h1>BORABU TTC</h1>
+            <h1 className="logo-title">BORABU TTC</h1>
             <div className="logo-tagline">Teachers Training College</div>
           </div>
         </Link>
 
         {/* Desktop Menu */}
-        <nav>
+        <nav className="desktop-nav" aria-label="Main Desktop Navigation">
           <ul className="nav-menu">
-            <li>
-              <Link href="/" className={`nav-link ${isLinkActive('/')}`}>
-                Home
-              </Link>
-            </li>
-            <li>
-              <Link href="/about" className={`nav-link ${isLinkActive('/about')}`}>
-                About
-              </Link>
-            </li>
-            <li>
-              <Link href="/programmes" className={`nav-link ${isLinkActive('/programmes')}`}>
-                Programmes
-              </Link>
-            </li>
-            <li>
-              <Link href="/admissions" className={`nav-link ${isLinkActive('/admissions')}`}>
-                Admissions
-              </Link>
-            </li>
-            <li>
-              <Link href="/fees" className={`nav-link ${isLinkActive('/fees')}`}>
-                Fees
-              </Link>
-            </li>
-            <li>
-              <Link href="/gallery" className={`nav-link ${isLinkActive('/gallery')}`}>
-                Gallery
-              </Link>
-            </li>
-            <li>
-              <Link href="/news" className={`nav-link ${isLinkActive('/news')}`}>
-                News
-              </Link>
-            </li>
-            <li>
-              <Link href="/faqs" className={`nav-link ${isLinkActive('/faqs')}`}>
-                FAQs
-              </Link>
-            </li>
-            <li>
-              <Link href="/contact" className={`nav-link ${isLinkActive('/contact')}`}>
-                Contact
-              </Link>
-            </li>
+            {navLinks.map((item) => (
+              <li key={item.href}>
+                <Link href={item.href} className={`nav-link ${isLinkActive(item.href)}`}>
+                  {item.label}
+                </Link>
+              </li>
+            ))}
           </ul>
         </nav>
 
-        <div className="nav-cta" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        {/* Desktop CTA & Controls */}
+        <div className="nav-cta desktop-cta">
           <ContrastToggle />
           {loading ? (
             <span style={{ fontSize: '14px', color: 'var(--text-light)' }}>Loading...</span>
           ) : user ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <Link 
                 href={user.role === 'applicant' ? '/dashboard' : '/admin'} 
                 className="btn btn-secondary"
                 style={{ fontSize: '13px', padding: '8px 16px' }}
+                id="nav-user-dashboard-btn"
               >
                 {user.role === 'applicant' ? 'Portal Dashboard' : 'Admin Area'}
               </Link>
@@ -140,22 +122,107 @@ export default function Navbar() {
                 onClick={handleLogout} 
                 className="btn btn-primary"
                 style={{ fontSize: '13px', padding: '8px 16px', background: 'hsl(0, 72%, 51%)' }}
+                id="nav-user-logout-btn"
               >
                 Logout
               </button>
             </div>
           ) : (
             <>
-              <Link href="/login" className="btn btn-secondary">
+              <Link href="/login" className="btn btn-secondary" id="nav-login-btn">
                 Login
               </Link>
-              <Link href="/register" className="btn btn-primary">
+              <Link href="/register" className="btn btn-primary" id="nav-apply-btn">
                 Apply Now
               </Link>
             </>
           )}
         </div>
+
+        {/* Mobile Hamburger & Action Button */}
+        <div className="mobile-nav-toggle-wrap">
+          <ContrastToggle />
+          <button
+            type="button"
+            className="mobile-hamburger-btn"
+            id="mobile-menu-toggle-button"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label={mobileMenuOpen ? 'Close Navigation Menu' : 'Open Navigation Menu'}
+            aria-expanded={mobileMenuOpen}
+          >
+            {mobileMenuOpen ? (
+              <span style={{ fontSize: '24px', lineHeight: 1 }}>✕</span>
+            ) : (
+              <span style={{ fontSize: '24px', lineHeight: 1 }}>☰</span>
+            )}
+          </button>
+        </div>
       </div>
+
+      {/* Mobile Drawer / Overlay Navigation */}
+      {mobileMenuOpen && (
+        <div className="mobile-nav-drawer" id="mobile-navigation-drawer">
+          <nav aria-label="Mobile Navigation">
+            <ul className="mobile-nav-list">
+              {navLinks.map((item) => (
+                <li key={item.href}>
+                  <Link 
+                    href={item.href} 
+                    className={`mobile-nav-link ${isLinkActive(item.href)}`}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+
+            <div className="mobile-nav-actions">
+              {user ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
+                  <Link 
+                    href={user.role === 'applicant' ? '/dashboard' : '/admin'} 
+                    className="btn btn-secondary"
+                    style={{ width: '100%', padding: '12px' }}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {user.role === 'applicant' ? '📊 Trainee Dashboard' : '⚙️ Admin Area'}
+                  </Link>
+                  <button 
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      handleLogout();
+                    }} 
+                    className="btn btn-primary"
+                    style={{ width: '100%', padding: '12px', background: 'hsl(0, 72%, 51%)' }}
+                  >
+                    Log Out
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
+                  <Link 
+                    href="/login" 
+                    className="btn btn-secondary"
+                    style={{ width: '100%', padding: '12px' }}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Applicant Login
+                  </Link>
+                  <Link 
+                    href="/register" 
+                    className="btn btn-primary"
+                    style={{ width: '100%', padding: '12px' }}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Apply for Admission
+                  </Link>
+                </div>
+              )}
+            </div>
+          </nav>
+        </div>
+      )}
     </header>
   );
 }

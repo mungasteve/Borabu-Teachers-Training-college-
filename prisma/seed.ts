@@ -317,33 +317,17 @@ async function main() {
   });
 
   console.log('Seeding applications...');
-  // 1. Draft application for Kevin -> DPTE
+  // 1. Fresh Draft application for Kevin -> DPTE (boxes left completely blank)
   await prisma.application.create({
     data: {
       userId: applicant1.id,
       programmeId: dpteProg.id,
       status: 'draft',
-      personalDetails: JSON.stringify({
-        dob: '2004-05-15',
-        gender: 'Male',
-        idNumber: '40123456',
-        county: 'Nyamira',
-        subCounty: 'Borabu',
-        address: 'P.O. Box 45, Nyansiongo',
-        nextOfKinName: 'Peter Omwamba',
-        nextOfKinPhone: '+254799887766',
-        nextOfKinRelation: 'Father',
-      }),
-      kcseIndexNo: '40732101001',
-      kcseYear: 2024,
-      kcseMeanGrade: 'C',
-      subjectGrades: JSON.stringify({
-        english: 'C',
-        kiswahili: 'C',
-        mathematics: 'C',
-        biology: 'C-',
-        history: 'B',
-      }),
+      personalDetails: JSON.stringify({}),
+      kcseIndexNo: '',
+      kcseYear: 0,
+      kcseMeanGrade: '',
+      subjectGrades: JSON.stringify({}),
     },
   });
 

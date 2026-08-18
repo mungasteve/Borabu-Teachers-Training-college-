@@ -53,7 +53,7 @@ export async function POST(req: Request) {
       );
     }
 
-    let transactionCode = paymentReference?.trim().toUpperCase() || '';
+    const transactionCode = paymentReference?.trim().toUpperCase() || '';
     let fileUrl = null;
 
     if (paymentMethod === 'mpesa') {

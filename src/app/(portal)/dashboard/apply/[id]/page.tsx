@@ -63,7 +63,6 @@ export default function ApplicationWizardPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
   // Step 1: Personal Details & Preferences
   const [personalDetails, setPersonalDetails] = useState({
@@ -175,7 +174,6 @@ export default function ApplicationWizardPage() {
   const saveDraft = async () => {
     setSaving(true);
     setError('');
-    setSuccess('');
     try {
       const res = await fetch(`/api/applications/${applicationId}`, {
         method: 'PATCH',
@@ -267,7 +265,6 @@ export default function ApplicationWizardPage() {
 
   const handlePrevStep = () => {
     setError('');
-    setSuccess('');
     setCurrentStep((prev) => prev - 1);
   };
 

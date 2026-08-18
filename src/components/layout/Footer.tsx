@@ -10,7 +10,7 @@ export default function Footer() {
       <div className="container">
         <div className="footer-grid">
           <div className="footer-brand">
-            <h2>BORABU TTC</h2>
+            <h2>BORABU TEACHERS TRAINING COLLEGE</h2>
             <p className="footer-desc">
               To provide Competent, Ethical, and Transformative Educators for sustainable national development through quality teacher education, pedagogical research, and innovative teaching practice.
             </p>
@@ -24,22 +24,27 @@ export default function Footer() {
             <ul className="footer-links">
               <li>
                 <Link href="/programmes?level=Diploma" className="footer-link">
-                  Diploma Programmes
+                  Diploma Programmes (DPTE & DECTE)
+                </Link>
+              </li>
+              <li>
+                <Link href="/programmes?level=Diploma+Upgrade" className="footer-link">
+                  Upgrade Diplomas (UDPTE & UDECTE)
                 </Link>
               </li>
               <li>
                 <Link href="/programmes?level=Certificate" className="footer-link">
-                  Certificate Programmes
+                  Certificate & SNE Programmes
                 </Link>
               </li>
               <li>
-                <Link href="/programmes?level=Artisan" className="footer-link">
-                  Artisan Programmes
+                <Link href="/programmes?level=Short+Course" className="footer-link">
+                  CBC & Leadership Courses
                 </Link>
               </li>
               <li>
                 <Link href="/admissions" className="footer-link">
-                  Entry Requirements
+                  Admissions Requirements
                 </Link>
               </li>
             </ul>
