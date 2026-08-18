@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useToast } from '@/components/Toast';
@@ -63,6 +63,8 @@ export default function ApplicationWizardPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
   // Step 1: Personal Details & Preferences
   const [personalDetails, setPersonalDetails] = useState({
@@ -86,6 +88,27 @@ export default function ApplicationWizardPage() {
     mathematics: '',
     science: '',
   });
+
+  // Track latest form state in Ref to avoid stale closures in the 30-second interval
+  const formStateRef = useRef({
+    personalDetails,
+    kcseIndexNo,
+    kcseYear,
+    kcseMeanGrade,
+    subjectGrades,
+    secondaryProgrammeId,
+  });
+
+  useEffect(() => {
+    formStateRef.current = {
+      personalDetails,
+      kcseIndexNo,
+      kcseYear,
+      kcseMeanGrade,
+      subjectGrades,
+      secondaryProgrammeId,
+    };
+  }, [personalDetails, kcseIndexNo, kcseYear, kcseMeanGrade, subjectGrades, secondaryProgrammeId]);
 
   // Step 4: Documents Upload states
   const [uploadProgress, setUploadProgress] = useState<Record<string, { status: string; percent: number }>>({});
@@ -171,9 +194,57 @@ export default function ApplicationWizardPage() {
     }
   }, [applicationId]);
 
-  const saveDraft = async () => {
-    setSaving(true);
-    setError('');
+  // Auto-Save Mechanism: runs every 30 seconds to prevent data loss during long application entries
+  useEffect(() => {
+    if (!applicationId || !app || app.status !== 'draft') return;
+
+    const autoSaveTimer = setInterval(async () => {
+      const currentState = formStateRef.current;
+      // Only auto-save if applicant has started filling something
+      const hasContent = 
+        Boolean(currentState.kcseIndexNo) || 
+        Boolean(currentState.kcseMeanGrade) || 
+        Boolean(currentState.kcseYear) ||
+        Object.values(currentState.personalDetails).some(v => Boolean(v && v.trim())) ||
+        Object.values(currentState.subjectGrades).some(Boolean);
+
+      if (!hasContent) return;
+
+      setAutoSaveStatus('saving');
+      try {
+        const res = await fetch(`/api/applications/${applicationId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            personalDetails: currentState.personalDetails,
+            kcseIndexNo: currentState.kcseIndexNo,
+            kcseYear: currentState.kcseYear,
+            kcseMeanGrade: currentState.kcseMeanGrade,
+            subjectGrades: currentState.subjectGrades,
+            secondaryProgrammeId: currentState.secondaryProgrammeId || null,
+          }),
+        });
+
+        if (res.ok) {
+          setLastSaved(new Date());
+          setAutoSaveStatus('saved');
+        } else {
+          setAutoSaveStatus('error');
+        }
+      } catch (err) {
+        console.warn('Auto-save background write failed:', err);
+        setAutoSaveStatus('error');
+      }
+    }, 30000); // 30,000 milliseconds = 30 seconds
+
+    return () => clearInterval(autoSaveTimer);
+  }, [applicationId, app]);
+
+  const saveDraft = async (silent = false) => {
+    if (!silent) {
+      setSaving(true);
+      setError('');
+    }
     try {
       const res = await fetch(`/api/applications/${applicationId}`, {
         method: 'PATCH',
@@ -193,13 +264,22 @@ export default function ApplicationWizardPage() {
         throw new Error(data.error || 'Failed to save application draft.');
       }
       
-      showToast('Draft updated successfully.', 'success');
+      setLastSaved(new Date());
+      setAutoSaveStatus('saved');
+      if (!silent) {
+        showToast('Application draft saved successfully.', 'success');
+      }
       return true;
     } catch (err: any) {
-      showToast(err.message || 'Failed to save changes.', 'error');
+      if (!silent) {
+        showToast(err.message || 'Failed to save changes.', 'error');
+      }
+      setAutoSaveStatus('error');
       return false;
     } finally {
-      setSaving(false);
+      if (!silent) {
+        setSaving(false);
+      }
     }
   };
 
@@ -541,9 +621,52 @@ export default function ApplicationWizardPage() {
     <div style={{ maxWidth: '800px', background: 'var(--bg-card)', border: '1px solid var(--border-light)', padding: '30px', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)' }}>
       
       {/* Wizard progress details bar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', fontSize: '12px', color: 'var(--text-light)' }}>
-        <span>Progress: <strong>{progressPercentage}% complete</strong></span>
-        <span>{getEstTimeRemaining()}</span>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', fontSize: '12px', color: 'var(--text-light)', flexWrap: 'wrap', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span>Progress: <strong>{progressPercentage}% complete</strong></span>
+          <span>&bull;</span>
+          <span>{getEstTimeRemaining()}</span>
+        </div>
+        
+        {/* Auto-save live indicator pill */}
+        <div 
+          id="autosave-status-pill"
+          style={{ 
+            display: 'inline-flex', 
+            alignItems: 'center', 
+            gap: '6px', 
+            fontSize: '11px', 
+            color: 'var(--text-dark)', 
+            background: 'var(--bg-main)', 
+            padding: '3px 10px', 
+            borderRadius: '20px', 
+            border: '1px solid var(--border-light)' 
+          }}
+        >
+          {autoSaveStatus === 'saving' ? (
+            <>
+              <span style={{ display: 'inline-block', width: '7px', height: '7px', borderRadius: '50%', background: 'var(--accent-gold)' }} />
+              <span style={{ color: 'var(--accent-gold)', fontWeight: '600' }}>Auto-saving draft...</span>
+            </>
+          ) : autoSaveStatus === 'error' ? (
+            <>
+              <span style={{ display: 'inline-block', width: '7px', height: '7px', borderRadius: '50%', background: 'hsl(0, 72%, 51%)' }} />
+              <span style={{ color: 'hsl(0, 72%, 51%)' }}>Auto-save paused</span>
+            </>
+          ) : lastSaved ? (
+            <>
+              <span style={{ display: 'inline-block', width: '7px', height: '7px', borderRadius: '50%', background: 'var(--accent-teal)' }} />
+              <span style={{ color: 'var(--text-light)' }}>
+                Auto-saved at <strong>{lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</strong>
+              </span>
+            </>
+          ) : (
+            <>
+              <span style={{ display: 'inline-block', width: '7px', height: '7px', borderRadius: '50%', background: 'var(--accent-teal)' }} />
+              <span style={{ color: 'var(--text-light)' }}>Auto-save active (30s)</span>
+            </>
+          )}
+        </div>
       </div>
       
       {/* Progress Bar visual indicator */}
@@ -1234,35 +1357,59 @@ export default function ApplicationWizardPage() {
       </form>
 
       {/* Action Footer buttons */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border-light)', paddingTop: '20px', marginTop: '30px' }}>
-        {currentStep > 1 ? (
-          <button onClick={handlePrevStep} disabled={saving} className="btn btn-secondary">
-            &larr; Back
-          </button>
-        ) : (
-          <Link href="/dashboard" className="btn btn-secondary">
-            Cancel & Return
-          </Link>
-        )}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-light)', paddingTop: '20px', marginTop: '30px', flexWrap: 'wrap', gap: '12px' }}>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          {currentStep > 1 ? (
+            <button onClick={handlePrevStep} disabled={saving} className="btn btn-secondary" id="wizard-prev-step-btn">
+              &larr; Back
+            </button>
+          ) : (
+            <Link href="/dashboard" className="btn btn-secondary" id="wizard-cancel-btn">
+              Cancel & Return
+            </Link>
+          )}
 
-        {currentStep < 6 ? (
           <button 
-            onClick={handleNextStep} 
-            disabled={saving || (currentStep === 4 && (!app?.documents || app.documents.length < 4))} 
-            className="btn btn-primary"
+            type="button" 
+            onClick={() => saveDraft(false)} 
+            disabled={saving} 
+            className="btn btn-secondary"
+            id="wizard-manual-save-draft-btn"
+            title="Save draft immediately"
+            style={{ fontSize: '13px', padding: '8px 14px' }}
           >
-            {saving ? 'Saving...' : 'Save & Continue &rarr;'}
+            {saving ? '💾 Saving...' : '💾 Save Draft'}
           </button>
-        ) : (
-          <button 
-            onClick={handleSubmitApplication} 
-            disabled={saving || !app?.documents || app.documents.length < 4 || app.paymentStatus !== 'paid'} 
-            className="btn btn-primary"
-            style={{ background: 'var(--accent-teal)', borderColor: 'var(--accent-teal)' }}
-          >
-            {saving ? 'Submitting...' : 'Confirm & Submit Application'}
-          </button>
-        )}
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          {lastSaved && (
+            <span style={{ fontSize: '12px', color: 'var(--text-light)' }} className="wizard-saved-timestamp">
+              Last saved: {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            </span>
+          )}
+
+          {currentStep < 6 ? (
+            <button 
+              onClick={handleNextStep} 
+              disabled={saving || (currentStep === 4 && (!app?.documents || app.documents.length < 4))} 
+              className="btn btn-primary"
+              id="wizard-next-step-btn"
+            >
+              {saving ? 'Saving...' : 'Save & Continue &rarr;'}
+            </button>
+          ) : (
+            <button 
+              onClick={handleSubmitApplication} 
+              disabled={saving || !app?.documents || app.documents.length < 4 || app.paymentStatus !== 'paid'} 
+              className="btn btn-primary"
+              id="wizard-submit-app-btn"
+              style={{ background: 'var(--accent-teal)', borderColor: 'var(--accent-teal)' }}
+            >
+              {saving ? 'Submitting...' : 'Confirm & Submit Application'}
+            </button>
+          )}
+        </div>
       </div>
 
       {currentStep === 4 && (!app?.documents || app.documents.length < 4) && (

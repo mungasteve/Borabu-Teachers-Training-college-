@@ -81,7 +81,7 @@ export default function RegisterPage() {
             <input
               type="text"
               required
-              placeholder="e.g. Kevin Omwamba"
+              placeholder="Enter your full official name"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               className="form-input"
@@ -93,7 +93,7 @@ export default function RegisterPage() {
             <input
               type="email"
               required
-              placeholder="e.g. kevin@gmail.com"
+              placeholder="Enter your valid email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="form-input"
@@ -105,7 +105,7 @@ export default function RegisterPage() {
             <input
               type="tel"
               required
-              placeholder="e.g. +254711223344"
+              placeholder="Enter phone number (e.g. 0712345678)"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               className="form-input"
@@ -118,7 +118,7 @@ export default function RegisterPage() {
               <input
                 type="password"
                 required
-                placeholder="Min 6 chars"
+                placeholder="Create password (min 6 characters)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="form-input"
@@ -130,7 +130,7 @@ export default function RegisterPage() {
               <input
                 type="password"
                 required
-                placeholder="Re-enter password"
+                placeholder="Confirm your password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="form-input"

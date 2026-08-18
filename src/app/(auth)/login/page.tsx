@@ -80,7 +80,7 @@ function LoginForm() {
             <input
               type="email"
               required
-              placeholder="e.g. student@gmail.com"
+              placeholder="Enter your registered email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="form-input"
@@ -92,7 +92,7 @@ function LoginForm() {
             <input
               type="password"
               required
-              placeholder="••••••••"
+              placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="form-input"

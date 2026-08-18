@@ -273,14 +273,14 @@ async function main() {
 
   const applicant1 = await prisma.user.create({
     data: {
-      fullName: 'Kevin Omwamba',
+      fullName: 'Student Applicant',
       email: 'student@gmail.com',
       phone: '+254733445566',
       passwordHash: studentPasswordHash,
       role: 'applicant',
       isVerified: true,
       mailingAddress: 'P.O. Box 45, Nyansiongo',
-      kinName: 'Peter Omwamba',
+      kinName: 'Guardian Contact',
       kinPhone: '+254799887766',
       kinRelation: 'Father',
     },

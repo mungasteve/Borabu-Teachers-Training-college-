@@ -198,7 +198,7 @@ export default function SettingsPage() {
               <label className="form-label">Next of Kin Full Name</label>
               <input
                 type="text"
-                placeholder="e.g. Peter Omwamba"
+                placeholder="Enter next of kin full name"
                 value={kinName}
                 onChange={(e) => setKinName(e.target.value)}
                 className="form-input"
@@ -210,7 +210,7 @@ export default function SettingsPage() {
                 <label className="form-label">Kin Phone Contact</label>
                 <input
                   type="tel"
-                  placeholder="e.g. +254799887766"
+                  placeholder="Enter contact phone number"
                   value={kinPhone}
                   onChange={(e) => setKinPhone(e.target.value)}
                   className="form-input"
