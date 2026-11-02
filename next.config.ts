@@ -45,7 +45,8 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  // Use standalone only for Docker/Cloud Run; Vercel requires standard serverless output
+  ...(process.env.VERCEL ? {} : { output: "standalone" }),
   serverExternalPackages: ["@prisma/client", "better-sqlite3", "@prisma/adapter-better-sqlite3"],
   outputFileTracingIncludes: {
     "/api/**/*": ["./prisma/dev.db"],
