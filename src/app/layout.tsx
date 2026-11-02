@@ -16,13 +16,40 @@ const lora = Lora({
   display: "swap",
 });
 
+const appUrl =
+  process.env.NEXT_PUBLIC_APP_URL ||
+  "https://borabu-teachers-training-college-fiom.vercel.app";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(appUrl),
   title: {
     template: "%s | Borabu Teachers Training College",
-    default: "Borabu Teachers Training College | Shaping Future Educators",
+    default: "Borabu Teachers Training College | Admissions & Teacher Education",
   },
-  description: "Official portal of Borabu Teachers Training College. Apply for Diploma in Primary Teacher Education (DPTE) and ECDE courses online.",
-  keywords: ["Borabu TTC", "Teachers College Kenya", "DPTE", "DECTE", "CECTE", "Teacher Training Nyamira"],
+  description:
+    "Admissions portal, programme catalog, applicant dashboard, and letter verification for Borabu Teachers Training College (BTTC).",
+  keywords: [
+    "Borabu TTC",
+    "Teachers College Kenya",
+    "DPTE",
+    "DECTE",
+    "CECTE",
+    "Teacher Training Nyamira",
+  ],
+  openGraph: {
+    title: "Borabu Teachers Training College",
+    description:
+      "Admissions portal, programme catalog, applicant dashboard, and letter verification for Borabu Teachers Training College (BTTC).",
+    type: "website",
+    images: [
+      {
+        url: "/images/campus-hero.jpg",
+        width: 1280,
+        height: 720,
+        alt: "Borabu Teachers Training College Campus in Nyamira County",
+      },
+    ],
+  },
 };
 
 export default function RootLayout({

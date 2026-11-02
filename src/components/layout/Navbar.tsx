@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { ChevronDown, Menu, X, ArrowRight } from 'lucide-react';
 import ContrastToggle from '../ContrastToggle';
 
 interface User {
@@ -18,6 +19,8 @@ export default function Navbar() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const dropdownRef = useRef<HTMLLIElement>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -45,10 +48,31 @@ export default function Navbar() {
     };
   }, []);
 
-  // Close mobile drawer whenever route changes
+  // Close menus whenever route changes
   useEffect(() => {
     setMobileMenuOpen(false);
+    setMoreOpen(false);
   }, [pathname]);
+
+  // Close desktop More dropdown on outside click or Escape
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setMoreOpen(false);
+      }
+    }
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        setMoreOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -64,82 +88,131 @@ export default function Navbar() {
   };
 
   const isLinkActive = (path: string) => {
-    return pathname === path ? 'active' : '';
+    if (path === '/') return pathname === '/' ? 'active' : '';
+    return pathname === path || pathname.startsWith(`${path}/`) ? 'active' : '';
   };
 
-  const navLinks = [
-    { href: '/', label: 'Home' },
-    { href: '/about', label: 'About' },
+  const primaryNavLinks = [
     { href: '/programmes', label: 'Programmes' },
     { href: '/admissions', label: 'Admissions' },
-    { href: '/fees', label: 'Fees' },
-    { href: '/gallery', label: 'Gallery' },
-    { href: '/news', label: 'News' },
-    { href: '/faqs', label: 'FAQs' },
-    { href: '/contact', label: 'Contact' },
+    { href: '/fees', label: 'Fee Structure' },
+    { href: '/gallery', label: 'Campus Life' },
+    { href: '/about', label: 'About' },
   ];
+
+  const secondaryNavLinks = [
+    { href: '/news', label: 'News & Notices' },
+    { href: '/faqs', label: 'Admissions FAQs' },
+    { href: '/verify/check', label: 'Verify Letter' },
+    { href: '/contact', label: 'Contact Us' },
+  ];
+
+  const allMobileLinks = [
+    { href: '/', label: 'Home' },
+    ...primaryNavLinks,
+    ...secondaryNavLinks,
+  ];
+
+  const isMoreActive = secondaryNavLinks.some((item) => isLinkActive(item.href) === 'active');
 
   return (
     <header className="main-header" id="site-main-header">
       <div className="container nav-container">
+        {/* Zone 1: Clean Single-Line Brand Wordmark */}
         <Link href="/" className="logo-link" id="nav-brand-logo">
-          <div className="logo-icon">B</div>
-          <div className="logo-text">
-            <h1 className="logo-title">BORABU TTC</h1>
-            <div className="logo-tagline">Teachers Training College</div>
-          </div>
+          <div className="logo-icon" aria-hidden="true">B</div>
+          <span className="logo-title">BORABU TTC</span>
         </Link>
 
-        {/* Desktop Menu */}
+        {/* Zone 2: Concise Primary Navigation */}
         <nav className="desktop-nav" aria-label="Main Desktop Navigation">
           <ul className="nav-menu">
-            {navLinks.map((item) => (
+            {primaryNavLinks.map((item) => (
               <li key={item.href}>
                 <Link href={item.href} className={`nav-link ${isLinkActive(item.href)}`}>
                   {item.label}
                 </Link>
               </li>
             ))}
+
+            {/* Secondary Institutional Pages Dropdown */}
+            <li className="nav-dropdown" ref={dropdownRef}>
+              <button
+                type="button"
+                className={`nav-link ${isMoreActive ? 'active' : ''}`}
+                onClick={() => setMoreOpen((prev) => !prev)}
+                aria-expanded={moreOpen}
+                aria-haspopup="true"
+              >
+                <span>Resources</span>
+                <ChevronDown
+                  size={15}
+                  style={{
+                    transform: moreOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.15s ease',
+                  }}
+                />
+              </button>
+
+              {moreOpen && (
+                <ul className="nav-dropdown-menu" role="menu">
+                  {secondaryNavLinks.map((item) => (
+                    <li key={item.href} role="none">
+                      <Link
+                        href={item.href}
+                        role="menuitem"
+                        className={`nav-dropdown-link ${isLinkActive(item.href)}`}
+                        onClick={() => setMoreOpen(false)}
+                      >
+                        {item.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
           </ul>
         </nav>
 
-        {/* Desktop CTA & Controls */}
+        {/* Zone 3: Compact Utility & Single Primary CTA */}
         <div className="nav-cta desktop-cta">
           <ContrastToggle />
           {loading ? (
-            <span style={{ fontSize: '14px', color: 'var(--text-light)' }}>Loading...</span>
+            <span style={{ fontSize: '13px', color: 'var(--text-light)' }}>...</span>
           ) : user ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <Link 
-                href={user.role === 'applicant' ? '/dashboard' : '/admin'} 
+            <>
+              <Link
+                href={user.role === 'applicant' ? '/dashboard' : '/admin'}
                 className="btn btn-secondary"
-                style={{ fontSize: '13px', padding: '8px 16px' }}
+                style={{ padding: '8px 14px', fontSize: '13px' }}
                 id="nav-user-dashboard-btn"
               >
-                {user.role === 'applicant' ? 'Portal Dashboard' : 'Admin Area'}
+                {user.role === 'applicant' ? 'Portal' : 'Admin'}
               </Link>
-              <button 
-                onClick={handleLogout} 
-                className="btn btn-primary"
-                style={{ fontSize: '13px', padding: '8px 16px', background: 'hsl(0, 72%, 51%)' }}
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="btn btn-danger"
+                style={{ padding: '8px 14px', fontSize: '13px' }}
                 id="nav-user-logout-btn"
               >
-                Logout
+                Sign Out
               </button>
-            </div>
+            </>
           ) : (
             <>
-              <Link href="/login" className="btn btn-secondary" id="nav-login-btn">
-                Login
+              <Link href="/login" className="nav-signin-link" id="nav-login-btn">
+                Sign In
               </Link>
               <Link href="/register" className="btn btn-primary" id="nav-apply-btn">
-                Apply Now
+                <span>Apply Online</span>
+                <ArrowRight size={15} />
               </Link>
             </>
           )}
         </div>
 
-        {/* Mobile Hamburger & Action Button */}
+        {/* Mobile Hamburger & Contrast Button */}
         <div className="mobile-nav-toggle-wrap">
           <ContrastToggle />
           <button
@@ -150,24 +223,20 @@ export default function Navbar() {
             aria-label={mobileMenuOpen ? 'Close Navigation Menu' : 'Open Navigation Menu'}
             aria-expanded={mobileMenuOpen}
           >
-            {mobileMenuOpen ? (
-              <span style={{ fontSize: '24px', lineHeight: 1 }}>✕</span>
-            ) : (
-              <span style={{ fontSize: '24px', lineHeight: 1 }}>☰</span>
-            )}
+            {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
       </div>
 
-      {/* Mobile Drawer / Overlay Navigation */}
+      {/* Mobile Drawer Navigation */}
       {mobileMenuOpen && (
         <div className="mobile-nav-drawer" id="mobile-navigation-drawer">
           <nav aria-label="Mobile Navigation">
             <ul className="mobile-nav-list">
-              {navLinks.map((item) => (
+              {allMobileLinks.map((item) => (
                 <li key={item.href}>
-                  <Link 
-                    href={item.href} 
+                  <Link
+                    href={item.href}
                     className={`mobile-nav-link ${isLinkActive(item.href)}`}
                     onClick={() => setMobileMenuOpen(false)}
                   >
@@ -180,37 +249,38 @@ export default function Navbar() {
             <div className="mobile-nav-actions">
               {user ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
-                  <Link 
-                    href={user.role === 'applicant' ? '/dashboard' : '/admin'} 
+                  <Link
+                    href={user.role === 'applicant' ? '/dashboard' : '/admin'}
                     className="btn btn-secondary"
                     style={{ width: '100%', padding: '12px' }}
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    {user.role === 'applicant' ? '📊 Trainee Dashboard' : '⚙️ Admin Area'}
+                    {user.role === 'applicant' ? 'Applicant Dashboard' : 'Admin Dashboard'}
                   </Link>
-                  <button 
+                  <button
+                    type="button"
                     onClick={() => {
                       setMobileMenuOpen(false);
                       handleLogout();
-                    }} 
-                    className="btn btn-primary"
-                    style={{ width: '100%', padding: '12px', background: 'hsl(0, 72%, 51%)' }}
+                    }}
+                    className="btn btn-danger"
+                    style={{ width: '100%', padding: '12px' }}
                   >
-                    Log Out
+                    Sign Out
                   </button>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
-                  <Link 
-                    href="/login" 
+                  <Link
+                    href="/login"
                     className="btn btn-secondary"
                     style={{ width: '100%', padding: '12px' }}
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Applicant Login
                   </Link>
-                  <Link 
-                    href="/register" 
+                  <Link
+                    href="/register"
                     className="btn btn-primary"
                     style={{ width: '100%', padding: '12px' }}
                     onClick={() => setMobileMenuOpen(false)}

@@ -232,15 +232,6 @@ export default function AiAdvisorWidget() {
               ✦
             </span>
             <span>Ask Admissions AI</span>
-            <span
-              style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                background: '#10b981',
-                boxShadow: '0 0 8px #10b981',
-              }}
-            />
           </button>
         )}
 

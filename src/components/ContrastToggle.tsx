@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { SunMoon } from 'lucide-react';
 
 export default function ContrastToggle() {
   const [contrast, setContrast] = useState(false);
@@ -28,21 +29,29 @@ export default function ContrastToggle() {
 
   return (
     <button
+      type="button"
       onClick={toggleContrast}
-      className="btn btn-secondary"
+      title={contrast ? 'Switch to Standard Theme' : 'Switch to High Contrast Mode'}
+      aria-label={contrast ? 'Switch to Standard Theme' : 'Switch to High Contrast Mode'}
+      aria-pressed={contrast}
       style={{
-        padding: '8px 12px',
-        fontSize: '12px',
+        width: '38px',
+        height: '38px',
+        padding: 0,
         margin: 0,
         display: 'inline-flex',
         alignItems: 'center',
-        gap: '6px',
-        borderColor: 'var(--text-dark)',
-        fontWeight: '600',
+        justifyContent: 'center',
+        borderRadius: 'var(--radius-sm)',
+        border: contrast ? '2px solid var(--primary-blue)' : '1px solid var(--border-light)',
+        background: contrast ? 'var(--primary-light)' : 'transparent',
+        color: 'var(--text-dark)',
+        cursor: 'pointer',
+        flexShrink: 0,
+        transition: 'var(--transition-fast)',
       }}
-      aria-label="Toggle High Contrast Mode"
     >
-      🌓 {contrast ? 'Normal Theme' : 'High Contrast'}
+      <SunMoon size={18} strokeWidth={2} />
     </button>
   );
 }
